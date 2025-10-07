@@ -22,6 +22,7 @@ namespace FileFragmentationConsole
             {
                 Console.WriteLine(msg);
             }
+            model.Messages.Clear();
         }
     }
 }
