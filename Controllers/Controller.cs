@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace FileFragmentationConsole
 {
@@ -16,24 +17,29 @@ namespace FileFragmentationConsole
 
         public void Run()
         {
-            if (!System.IO.File.Exists(_model.FilePath))
+            _model.CleanUpFiles();
+            _view.DisplayMessages(_model);
+
+            StartFileProcess();
+        }
+
+        public void StartFileProcess()
+        {
+            _model.CreateInputFile();
+            _view.ShowMessage("Enter text to append to the file (type 'END' on a new line to finish):");
+            
+            var lines = new List<string>();
+            while (true)
             {
-                
-                _model.CreateInputFile();
-                _view.ShowMessage("Enter text to append to the file (type 'END' on a new line to finish):");
-
-                var lines = new List<string>();
-                while (true)
-                {
-                    string input = _view.GetUserInput();
-                    if (input.ToUpper() == "END") break;
-                    lines.Add(input);
-                }
-
-                _model.AppendUserText(lines);
-                _view.DisplayMessages(_model);
+                string input = _view.GetUserInput();
+                if (input.ToUpper() == "END") break;
+                lines.Add(input);
             }
 
+             _model.AppendUserText(lines);
+             _view.DisplayMessages(_model);
+
+            Console.WriteLine("Fragmentation Process");
             string chunkInput = _view.GetUserInput("Enter the number of characters per small file: ");
             if (!int.TryParse(chunkInput, out int chunkSize) || chunkSize <= 0)
             {
@@ -43,6 +49,7 @@ namespace FileFragmentationConsole
 
             _model.SplitFile(chunkSize);
             _view.DisplayMessages(_model);
+
             PostSplitMenu();
         }
 
@@ -54,7 +61,8 @@ namespace FileFragmentationConsole
                 _view.ShowMessage("1. View a specific split file");
                 _view.ShowMessage("2. Delete a fragment");
                 _view.ShowMessage("3. Defragment into output.txt");
-                _view.ShowMessage("4. Exit");
+                _view.ShowMessage("4. Delete all and create new file");
+                _view.ShowMessage("5. Exit");
                 string choice = _view.GetUserInput("Choose an option: ");
 
                 switch (choice)
@@ -75,6 +83,12 @@ namespace FileFragmentationConsole
                         break;
 
                     case "4":
+                        _model.DeleteAllFilesAndReset();
+                        _view.DisplayMessages(_model);
+                        StartFileProcess(); // restart everything
+                        return;
+
+                    case "5":
                         _view.ShowMessage("Exiting...");
                         return;
 

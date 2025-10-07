@@ -13,6 +13,20 @@ namespace FileFragmentationConsole
         public string SplitFolder { get; set; } = "SplitFiles";
         public string OutputFile { get; set; } = "IOFiles/Output.txt";
 
+        public void CleanUpFiles()
+        {
+            Directory.CreateDirectory(SplitFolder);
+            foreach (var file in Directory.GetFiles(SplitFolder, "*.txt"))
+            {
+                File.Delete(file);
+            }
+
+            if (File.Exists(FilePath))
+                File.Delete(FilePath);
+
+            Messages.Add("Clean startup: All previous text files deleted.");
+        }
+
         public void CreateInputFile()
         {
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath) ?? "");
@@ -95,6 +109,24 @@ namespace FileFragmentationConsole
                 }
             }
             return $"All fragments merged into {OutputFile}";
+        }
+
+        public void DeleteAllFilesAndReset()
+        {
+            if (Directory.Exists(SplitFolder))
+            {
+                foreach (var file in Directory.GetFiles(SplitFolder, "*.txt"))
+                    File.Delete(file);
+            }
+            if (Directory.Exists(IOFiles))
+            {
+                foreach (var file in Directory.GetFiles(IOFiles, "*.txt"))
+                    File.Delete(file);
+            }
+            //if (File.Exists(FilePath))
+            //    File.Delete(FilePath);
+
+            Messages.Add("All fragments and input file deleted. Ready to create a new file.");
         }
     }
 }
