@@ -1,6 +1,5 @@
 using System;
-using System.IO;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace FileFragmentationConsole
 {
@@ -17,64 +16,34 @@ namespace FileFragmentationConsole
 
         public void Run()
         {
-            Directory.CreateDirectory("IOFiles");
-            Directory.CreateDirectory(_model.SplitFolder);
-
-            if (!File.Exists(_model.FilePath))
+            if (!System.IO.File.Exists(_model.FilePath))
             {
-                //Directory.CreateDirectory(Path.GetDirectoryName(_model.FilePath) ?? string.Empty);
-                //File.Create(_model.FilePath).Close();
-                File.Create(_model.FilePath).Close();
+                
+                _model.CreateInputFile();
                 _view.ShowMessage("Enter text to append to the file (type 'END' on a new line to finish):");
 
-                using (StreamWriter writer = new StreamWriter(_model.FilePath, append: true))
+                var lines = new List<string>();
+                while (true)
                 {
-                    while (true)
-                    {
-                        string input = _view.GetUserInput();
-                        if (input.ToUpper() == "END") break;
-                        writer.WriteLine(input);
-                    }
-                }
-                _view.ShowMessage($"Your text has been appended to {_model.FilePath}!");
-            }
-            SplitFile();
-            PostSplitMenu();
-        }
-        private void SplitFile()
-        {
-                //if (!Directory.Exists("SplitFiles")) Directory.CreateDirectory("SplitFiles");
-
-                string input = _view.GetUserInput("Enter the number of characters per small file: ");
-                if (!int.TryParse(input, out int chunkSize) || chunkSize <= 0)
-                {
-                    _view.ShowMessage("Invalid input. Please enter a positive integer.");
-                    return;
-                }
-                _model.ChunkSize = chunkSize;
-
-                string content = File.ReadAllText(_model.FilePath).Replace("\r\n", "\n");
-                int totalChars = content.Length;
-                int fileCount = 1;
-                int index = 0;
-                int fileCountMax = (totalChars + _model.ChunkSize - 1) / _model.ChunkSize;
-                int padding = fileCountMax.ToString().Length;
-
-                while (index < totalChars)
-                {
-                    string smallFileName = Path.Combine(_model.SplitFolder, fileCount.ToString().PadLeft(padding, '0') + ".txt");
-                    int length = Math.Min(_model.ChunkSize, totalChars - index);
-                    string chunk = content.Substring(index, length).Replace("\n", Environment.NewLine);
-
-                    File.WriteAllText(smallFileName, chunk);
-                    _model.Messages.Add($"{smallFileName} created with {chunk.Length} visible characters.");
-
-                    index += length;
-                    fileCount++;
+                    string input = _view.GetUserInput();
+                    if (input.ToUpper() == "END") break;
+                    lines.Add(input);
                 }
 
-                _model.Messages.Add("Splitting completed!");
+                _model.AppendUserText(lines);
                 _view.DisplayMessages(_model);
+            }
+
+            string chunkInput = _view.GetUserInput("Enter the number of characters per small file: ");
+            if (!int.TryParse(chunkInput, out int chunkSize) || chunkSize <= 0)
+            {
+                _view.ShowMessage("Invalid chunk size. Exiting...");
+                return;
+            }
+
+            _model.SplitFile(chunkSize);
+            _view.DisplayMessages(_model);
+            PostSplitMenu();
         }
 
         private void PostSplitMenu()
@@ -91,70 +60,29 @@ namespace FileFragmentationConsole
                 switch (choice)
                 {
                     case "1":
-                        ViewFragment();
+                        string viewFile = _view.GetUserInput("Enter fragment filename: ");
+                        string content = _model.ViewFragment(viewFile);
+                        _view.ShowMessage($"\n--- {viewFile} ---\n{content}\n--- End ---");
                         break;
+
                     case "2":
-                        DeleteFragment();
+                        string deleteFile = _view.GetUserInput("Enter fragment filename to delete: ");
+                        _view.ShowMessage(_model.DeleteFragment(deleteFile));
                         break;
+
                     case "3":
-                        DefragmentFiles();
+                        _view.ShowMessage(_model.DefragmentFiles());
                         break;
+
                     case "4":
                         _view.ShowMessage("Exiting...");
                         return;
+
                     default:
-                        _view.ShowMessage("Invalid choice. Try again.");
+                        _view.ShowMessage("Invalid option. Try again.");
                         break;
                 }
             }
-        }
-
-        private void ViewFragment()
-        {
-            string filename = _view.GetUserInput("Enter the fragment file name to view: ");
-            string fullPath = Path.Combine(_model.SplitFolder, filename);
-            if (File.Exists(fullPath))
-            {
-                string content = File.ReadAllText(fullPath);
-                _view.ShowMessage($"\n--- {filename} ---\n{content}\n--- End ---");
-            }
-            else
-            {
-                _view.ShowMessage("File does not exist.");
-            }
-        }
-
-        private void DeleteFragment()
-        {
-            string filename = _view.GetUserInput("Enter the fragment file name to delete: ");
-            string fullPath = Path.Combine(_model.SplitFolder, filename);
-            if (File.Exists(fullPath))
-            {
-                File.Delete(fullPath);
-                _view.ShowMessage($"{filename} deleted successfully.");
-            }
-            else
-            {
-                _view.ShowMessage("File does not exist.");
-            }
-        }
-
-        private void DefragmentFiles()
-        {
-            var fragmentFiles = Directory.GetFiles(_model.SplitFolder)
-                .Where(f => Path.GetFileName(f) != "output.txt")
-                .OrderBy(f => f).ToArray();
-
-            using (StreamWriter writer = new StreamWriter(_model.OutputFile, false))
-            {
-                foreach (var file in fragmentFiles)
-                {
-                    string content = File.ReadAllText(file);
-                    writer.Write(content);
-                }
-            }
-
-            _view.ShowMessage($"All fragments defragmented into {_model.OutputFile}");
         }
     }
 }
