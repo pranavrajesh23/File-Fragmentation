@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace FileFragmentationConsole
 {
@@ -15,95 +15,149 @@ namespace FileFragmentationConsole
             _view = view;
         }
 
-        public void Run()
+        public void StartApp()
         {
-            _model.CleanUpFiles();
-            _view.DisplayMessages(_model);
+            try
+            {
+                Directory.CreateDirectory("IOFiles");
+                Directory.CreateDirectory("SplitFiles");
+                Directory.CreateDirectory("OutFiles");
+                foreach (var file in Directory.GetFiles("SplitFiles"))
+                    File.Delete(file);
+                foreach (var file in Directory.GetFiles("IOFiles"))
+                    File.Delete(file);
+                foreach (var file in Directory.GetFiles("OutFiles"))
+                    File.Delete(file);
 
-            StartFileProcess();
+                while (true)
+                {
+                    _view.ShowMessage("\n=== FILE FRAGMENTATION SYSTEM ===");
+                    _view.ShowMessage("1. Create or append a file");
+                    _view.ShowMessage("2. Fragment an existing file");
+                    _view.ShowMessage("3. Exit");
+
+                    string choice = _view.GetUserInput("Enter your choice: ");
+
+                    switch (choice)
+                    {
+                        case "1":
+                            CreateOrAppendFile();
+                            break;
+                        case "2":
+                            FragmentExistingFile();
+                            break;
+                        case "3":
+                            _view.ShowMessage("Exiting program... Goodbye!");
+                            return;
+                        default:
+                            _view.ShowMessage("Invalid choice, try again!");
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _view.ShowMessage($"? Unexpected error: {ex.Message}");
+            }
         }
 
-        public void StartFileProcess()
+        private void CreateOrAppendFile()
         {
-            _model.CreateInputFile();
-            _view.ShowMessage("Enter text to append to the file (type 'END' on a new line to finish):");
-            
-            var lines = new List<string>();
-            while (true)
+            try
             {
-                string input = _view.GetUserInput();
-                if (input.ToUpper() == "END") break;
-                lines.Add(input);
+                string fileName = _view.GetUserInput("Enter file name (e.g., MyText.txt): ");
+                string fullPath = Path.Combine("IOFiles", fileName);
+                _model.CreateOrAppendFile(fullPath);
             }
-
-             _model.AppendUserText(lines);
-             _view.DisplayMessages(_model);
-
-            Console.WriteLine("Fragmentation Process");
-
-            int chunkSize = 0;
-            while (true)
+            catch (Exception ex)
             {
-                string chunkInput = _view.GetUserInput("Enter the number of characters per small file (1–50): ");
-
-                if (int.TryParse(chunkInput, out chunkSize) && chunkSize >= 1 && chunkSize <= 50)
-                    break;
-
-                _view.ShowMessage("? Invalid size! Please enter a number between 1 and 50.");
+                _view.ShowMessage($"? Error in CreateOrAppendFile: {ex.Message}");
             }
+        }
 
-            _model.SplitFile(chunkSize);
-            _view.DisplayMessages(_model);
+        private void FragmentExistingFile()
+        {
+            try
+            {
+                var files = Directory.GetFiles("IOFiles", "*.txt");
+                if (files.Length == 0)
+                {
+                    _view.ShowMessage("No files found. Please create one first!");
+                    return;
+                }
 
-            PostSplitMenu();
+                _view.ShowMessage("\nAvailable files:");
+                for (int i = 0; i < files.Length; i++)
+                    _view.ShowMessage($"{i + 1}. {Path.GetFileName(files[i])}");
+
+                string choice = _view.GetUserInput("Select file number: ");
+                if (!int.TryParse(choice, out int index) || index < 1 || index > files.Length)
+                {
+                    _view.ShowMessage("Invalid selection!");
+                    return;
+                }
+
+                _model.FilePath = files[index - 1];
+                StartFileFragmentation();
+            }
+            catch (Exception ex)
+            {
+                _view.ShowMessage($"? Error while fragmenting: {ex.Message}");
+            }
+        }
+
+        private void StartFileFragmentation()
+        {
+            try
+            {
+                int chunkSize = 0;
+                while (true)
+                {
+                    string chunkInput = _view.GetUserInput("Enter number of characters per fragment (1–50): ");
+                    if (int.TryParse(chunkInput, out chunkSize) && chunkSize >= 1 && chunkSize <= 50)
+                        break;
+                    _view.ShowMessage("? Invalid input! Please enter a number between 1 and 50.");
+                }
+
+                _model.SplitFile(chunkSize);
+                _view.ShowMessage("? File successfully fragmented!");
+
+                PostSplitMenu();
+            }
+            catch (Exception ex)
+            {
+                _view.ShowMessage($"? Error in StartFileFragmentation: {ex.Message}");
+            }
         }
 
         private void PostSplitMenu()
         {
             while (true)
             {
-                _view.ShowMessage("\nPost-split options:");
-                _view.ShowMessage("1. View a specific split file");
-                _view.ShowMessage("2. Delete a fragment");
-                _view.ShowMessage("3. Defragment into output.txt");
-                _view.ShowMessage("4. Delete all and create new file");
-                _view.ShowMessage("5. Exit");
-                string choice = _view.GetUserInput("Choose an option: ");
-
-                switch (choice)
+                try
                 {
-                    case "1":
-                        string viewFile = _view.GetUserInput("Enter fragment filename: ");
-                        string content = _model.ViewFragment(viewFile);
-                        _view.ShowMessage($"\n--- {viewFile} ---\n{content}\n--- End ---");
-                        break;
+                    _view.ShowMessage("\n--- Post-Split Menu ---");
+                    _view.ShowMessage("1. View a specific fragment");
+                    _view.ShowMessage("2. Delete a fragment");
+                    _view.ShowMessage("3. Defragment all fragments");
+                    _view.ShowMessage("4. Delete all fragments & return to main menu");
+                    _view.ShowMessage("5. Exit to main menu");
 
-                    case "2":
-                        string deleteFile = _view.GetUserInput("Enter fragment filename to delete: ");
-                        _view.ShowMessage(_model.DeleteFragment(deleteFile));
-                        break;
-
-                    case "3":
-                        _view.ShowMessage(_model.DefragmentFiles());
-                        break;
-
-                    case "4":
-                        _model.DeleteAllFilesAndReset();
-                        _view.DisplayMessages(_model);
-                        StartFileProcess(); // restart everything
-                        return;
-
-                    case "5":
-                        _view.ShowMessage("Exiting...");
-                        return;
-
-                    default:
-                        _view.ShowMessage("Invalid option. Try again.");
-                        break;
-
-                    
+                    string choice = _view.GetUserInput("Enter your choice: ");
+                    switch (choice)
+                    {
+                        case "1": _model.ViewFragment(); break;
+                        case "2": _model.DeleteFragment(); break;
+                        case "3": _model.DefragmentFiles(); break;
+                        case "4": _model.DeleteAllFragments(); return;
+                        case "5": return;
+                        default: _view.ShowMessage("Invalid option! Try again."); break;
+                    }
                 }
-                Console.WriteLine("What is this");
+                catch (Exception ex)
+                {
+                    _view.ShowMessage($"? Error in PostSplitMenu: {ex.Message}");
+                }
             }
         }
     }

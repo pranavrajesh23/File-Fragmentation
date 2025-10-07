@@ -4,9 +4,9 @@ namespace FileFragmentationConsole
 {
     public class FileFragmentationView
     {
-        public void ShowMessage(string message)
+        public void ShowMessage(string msg)
         {
-            Console.WriteLine(message);
+            Console.WriteLine(msg);
         }
 
         public string GetUserInput(string prompt = "")
@@ -14,15 +14,6 @@ namespace FileFragmentationConsole
             if (!string.IsNullOrEmpty(prompt))
                 Console.Write(prompt);
             return Console.ReadLine();
-        }
-
-        public void DisplayMessages(FileFragmentationModel model)
-        {
-            foreach (var msg in model.Messages)
-            {
-                Console.WriteLine(msg);
-            }
-            model.Messages.Clear();
         }
     }
 }

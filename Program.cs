@@ -1,5 +1,3 @@
-using System;
-
 namespace FileFragmentationConsole
 {
     class Program
@@ -9,8 +7,7 @@ namespace FileFragmentationConsole
             var model = new FileFragmentationModel();
             var view = new FileFragmentationView();
             var controller = new FileFragmentationController(model, view);
-
-            controller.Run();
+            controller.StartApp();
         }
     }
 }
