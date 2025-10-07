@@ -114,7 +114,7 @@ namespace FileFragmentationConsole
             }
             catch (Exception e)
             {
-                Messages.Add($"Error during reading :{e.Message}");
+                return $"Error during reading :{e.Message}";
             }
         }
 
@@ -131,7 +131,7 @@ namespace FileFragmentationConsole
             }
             catch (Exception e)
             {
-                Messages.Add($"Error during deleting :{e.Message}");
+                return $"Error during deleting :{e.Message}";
             }
         }
 
@@ -156,7 +156,7 @@ namespace FileFragmentationConsole
             }
             catch (Exception e)
             {
-                Messages.Add($"Error during defragmentation :{e.Message}");
+                return $"Error during defragmentation :{e.Message}";
             }
         }
 
@@ -180,7 +180,7 @@ namespace FileFragmentationConsole
             }
             catch (Exception e)
             {
-                Messages.Add($"Error during comparing :{e.Message}");
+                return $"Error during comparing :{e.Message}";
             }
         }
 

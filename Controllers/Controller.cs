@@ -26,7 +26,7 @@ namespace FileFragmentationConsole
             }
             catch (Exception e)
             {
-                Messages.Add($"Error during running :{e.Message}");
+                _model.Messages.Add($"Error during running :{e.Message}");
             }
         }
 
@@ -69,7 +69,7 @@ namespace FileFragmentationConsole
             }
             catch (Exception e)
             {
-                Messages.Add($"Error during creating and appending :{e.Message}");
+                _model.Messages.Add($"Error during creating and appending :{e.Message}");
             }
         }
 
@@ -123,7 +123,7 @@ namespace FileFragmentationConsole
             }
             catch (Exception e)
             {
-                Messages.Add($"Error :{e.Message}");
+                _model.Messages.Add($"Error :{e.Message}");
             }
         }
     }
