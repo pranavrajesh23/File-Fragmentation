@@ -118,9 +118,9 @@ namespace FileFragmentationConsole
                 foreach (var file in Directory.GetFiles(SplitFolder, "*.txt"))
                     File.Delete(file);
             }
-            if (Directory.Exists(IOFiles))
+            if (Directory.Exists("IOFiles"))
             {
-                foreach (var file in Directory.GetFiles(IOFiles, "*.txt"))
+                foreach (var file in Directory.GetFiles("IOFiles", "*.txt"))
                     File.Delete(file);
             }
             //if (File.Exists(FilePath))
