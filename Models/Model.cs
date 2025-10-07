@@ -111,6 +111,23 @@ namespace FileFragmentationConsole
             return $"All fragments merged into {OutputFile}";
         }
 
+        public string CompareInputAndOutput()
+        {
+            if (!File.Exists(FilePath))
+                return "Input file not found.";
+
+            if (!File.Exists(OutputFile))
+                return "Output file not found.";
+
+            string inputContent = File.ReadAllText(FilePath).Replace("\r\n", "\n");
+            string outputContent = File.ReadAllText(OutputFile).Replace("\r\n", "\n");
+
+            if (inputContent == outputContent)
+                return "Files are the SAME!";
+            else
+                return "Files are DIFFERENT!";
+        }
+
         public void DeleteAllFilesAndReset()
         {
             if (Directory.Exists(SplitFolder))
@@ -123,9 +140,6 @@ namespace FileFragmentationConsole
                 foreach (var file in Directory.GetFiles("IOFiles", "*.txt"))
                     File.Delete(file);
             }
-            //if (File.Exists(FilePath))
-            //    File.Delete(FilePath);
-
             Messages.Add("All fragments and input file deleted. Ready to create a new file.");
         }
     }

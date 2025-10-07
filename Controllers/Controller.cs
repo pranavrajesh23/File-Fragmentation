@@ -71,7 +71,7 @@ namespace FileFragmentationConsole
                 _view.ShowMessage("\nPost-split options:");
                 _view.ShowMessage("1. View a specific split file");
                 _view.ShowMessage("2. Delete a fragment");
-                _view.ShowMessage("3. Defragment into output.txt");
+                _view.ShowMessage("3. Defragment and Compare");
                 _view.ShowMessage("4. Delete all and create new file");
                 _view.ShowMessage("5. Exit");
                 string choice = _view.GetUserInput("Choose an option: ");
@@ -91,6 +91,7 @@ namespace FileFragmentationConsole
 
                     case "3":
                         _view.ShowMessage(_model.DefragmentFiles());
+                        _view.ShowMessage(_model.CompareInputAndOutput());
                         break;
 
                     case "4":
