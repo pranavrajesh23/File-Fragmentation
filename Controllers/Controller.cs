@@ -40,12 +40,7 @@ namespace FileFragmentationConsole
              _view.DisplayMessages(_model);
 
             Console.WriteLine("Fragmentation Process");
-            //string chunkInput = _view.GetUserInput("Enter the number of characters per small file: ");
-            //if (!int.TryParse(chunkInput, out int chunkSize) || chunkSize <= 0)
-            //{
-            //    _view.ShowMessage("Invalid chunk size. Exiting...");
-            //    return;
-            //}
+
             int chunkSize = 0;
             while (true)
             {
@@ -56,7 +51,6 @@ namespace FileFragmentationConsole
 
                 _view.ShowMessage("? Invalid size! Please enter a number between 1 and 50.");
             }
-
 
             _model.SplitFile(chunkSize);
             _view.DisplayMessages(_model);
@@ -106,7 +100,10 @@ namespace FileFragmentationConsole
                     default:
                         _view.ShowMessage("Invalid option. Try again.");
                         break;
+
+                    
                 }
+                Console.WriteLine("What is this");
             }
         }
     }
